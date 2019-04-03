@@ -26,10 +26,11 @@ namespace Entities.Models
         [StringLength(255)]
         public string Surname { get; set; }
 
-        public DateTime Created_at { get; set; }
-        public DateTime Updated_at { get; set; }
+        public DateTime? Created_at { get; set; }
+        public DateTime? Updated_at { get; set; }
 
-        public Role role { get; set; }
-        public Shop shop { get; set; }
+        [Required]
+        public Role Role { get; set; }
+        public Shop Shop { get; set; }
     }
 }

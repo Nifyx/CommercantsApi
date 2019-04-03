@@ -4,14 +4,16 @@ using Entities.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace CommercantsAPI.Migrations
 {
     [DbContext(typeof(Context))]
-    partial class ContextModelSnapshot : ModelSnapshot
+    [Migration("20190403190109_UpdateTable")]
+    partial class UpdateTable
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -25,13 +27,13 @@ namespace CommercantsAPI.Migrations
                         .ValueGeneratedOnAdd()
                         .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
 
-                    b.Property<DateTime?>("Created_at");
+                    b.Property<DateTime>("Created_at");
 
                     b.Property<string>("Label")
                         .IsRequired()
                         .HasMaxLength(50);
 
-                    b.Property<DateTime?>("Updated_at");
+                    b.Property<DateTime>("Updated_at");
 
                     b.HasKey("Id");
 
@@ -44,7 +46,7 @@ namespace CommercantsAPI.Migrations
                         .ValueGeneratedOnAdd()
                         .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
 
-                    b.Property<DateTime?>("Created_at");
+                    b.Property<DateTime>("Created_at");
 
                     b.Property<string>("ImagePath");
 
@@ -60,7 +62,7 @@ namespace CommercantsAPI.Migrations
                         .IsRequired()
                         .HasMaxLength(255);
 
-                    b.Property<DateTime?>("Updated_at");
+                    b.Property<DateTime>("Updated_at");
 
                     b.HasKey("Id");
 
@@ -73,7 +75,7 @@ namespace CommercantsAPI.Migrations
                         .ValueGeneratedOnAdd()
                         .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
 
-                    b.Property<DateTime?>("Created_at");
+                    b.Property<DateTime>("Created_at");
 
                     b.Property<string>("Mail")
                         .IsRequired()
@@ -91,7 +93,7 @@ namespace CommercantsAPI.Migrations
                         .IsRequired()
                         .HasMaxLength(255);
 
-                    b.Property<DateTime?>("Updated_at");
+                    b.Property<DateTime>("Updated_at");
 
                     b.Property<long>("roleId");
 

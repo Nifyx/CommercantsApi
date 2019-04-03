@@ -68,15 +68,15 @@ namespace CommercantsAPI.Controllers
             }
 
             shopToUpdate.Name = shop.Name;
-            shopToUpdate.NumberStreet = shop.NumberStreet;
             shopToUpdate.Street = shop.Street;
             shopToUpdate.PostalCode = shop.PostalCode;
+            shopToUpdate.ImagePath = shop.ImagePath;
             this._repositoryWrapper.Shop.Update(shopToUpdate);
             return NoContent();
         }
 
         [HttpDelete("{id}")]
-        public ActionResult Delete(long id)
+        public IActionResult Delete(long id)
         {
             Shop shop = this._repositoryWrapper.Shop.Find(id);
             if(shop == null)

@@ -13,9 +13,18 @@ namespace Entities.Models
         [Key]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public long Id { get; set; }
+        [Required]
+        [StringLength(255)]
         public string Name { get; set; }
-        public int NumberStreet { get; set; }
+        [Required]
+        [StringLength(255)]
         public string Street { get; set; }
+        [Required]
+        [StringLength(5)]
         public string PostalCode { get; set; }
+        public string ImagePath { get; set; }
+
+        public DateTime? Created_at { get; set; }
+        public DateTime? Updated_at { get; set; }
     }
 }

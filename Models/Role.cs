@@ -13,6 +13,11 @@ namespace Entities.Models
         [Key]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public long Id { get; set; }
+        [Required]
+        [StringLength(50)]
         public string Label { get; set; }
+
+        public DateTime? Created_at { get; set; }
+        public DateTime? Updated_at { get; set; }
     }
 }
