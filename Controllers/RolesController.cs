@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using CommercantsAPI.Models.Roles;
 using CommercantsAPI.Repository;
 using Entities.Models;
 using Microsoft.AspNetCore.Http;
@@ -27,7 +28,7 @@ namespace CommercantsAPI.Controllers
             return Ok(roles);
         }
 
-        [HttpGet("{id}", Name = "Get")]
+        [HttpGet("{id}")]
         public IActionResult Get(long id)
         {
             Role role = this._repositoryWrapper.Role.Find(id);

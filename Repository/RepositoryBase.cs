@@ -1,4 +1,5 @@
-﻿using Entities.Models;
+﻿using CommercantsAPI.Models;
+using Entities.Models;
 using System;
 using System.Collections.Generic;
 using System.Linq;

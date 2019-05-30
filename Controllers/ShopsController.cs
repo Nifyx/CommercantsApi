@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using Entities.Models;
 using CommercantsAPI.Repository;
+using CommercantsAPI.Models.Shops;
 
 namespace CommercantsAPI.Controllers
 {
@@ -28,7 +29,7 @@ namespace CommercantsAPI.Controllers
             return Ok(shops);
         }
 
-        [HttpGet("{id}", Name ="Get")]
+        [HttpGet("{id}")]
         public IActionResult Get(long id)
         {
             Shop shop = this._repositoryWrapper.Shop.Find(id);

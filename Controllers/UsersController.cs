@@ -1,23 +1,71 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
+using System.Security.Claims;
+using System.Text;
 using System.Threading.Tasks;
+using AutoMapper;
+using CommercantsAPI.Exceptions;
+using CommercantsAPI.Models.Users;
 using CommercantsAPI.Repository;
+using CommercantsAPI.Util;
 using Entities.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Options;
+using Microsoft.IdentityModel.Tokens;
 
 namespace CommercantsAPI.Controllers
 {
     [Route("/api/user")]
+    [Authorize]
     [ApiController]
     public class UsersController : ControllerBase
     {
         private IRepositoryWrapper _repositoryWrapper;
+        private IMapper _mapper;
+        private readonly AppSettings _appSettings;
 
-        public UsersController(IRepositoryWrapper repositoryWrapper)
+        public UsersController(IRepositoryWrapper repositoryWrapper, IMapper mapper, IOptions<AppSettings> appSettings)
         {
             this._repositoryWrapper = repositoryWrapper;
+            this._mapper = mapper;
+            this._appSettings = appSettings.Value;
+        }
+
+        [AllowAnonymous]
+        [HttpPost("Authenticate")]
+        public IActionResult Authenticate([FromBody] UserDto userParam)
+        {
+            var user = _repositoryWrapper.User.Authenticate(userParam.Mail, userParam.password);
+
+            if (user == null)
+                return BadRequest(new { message = "Username or password is incorrect" });
+
+            var tokenHandler = new JwtSecurityTokenHandler();
+            var key = Encoding.ASCII.GetBytes(_appSettings.Secret);
+            var tokenDescriptor = new SecurityTokenDescriptor
+            {
+                Subject = new ClaimsIdentity(new Claim[]
+                {
+                    new Claim(ClaimTypes.Name, user.Id.ToString())
+                }),
+                Expires = DateTime.UtcNow.AddDays(7),
+                SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
+            };
+            var token = tokenHandler.CreateToken(tokenDescriptor);
+            var tokenString = tokenHandler.WriteToken(token);
+
+            return Ok(new
+            {
+                Id = user.Id,
+                Mail = user.Mail,
+                Name = user.Name,
+                Surname = user.Surname,
+                Token = tokenString
+            });
         }
 
         [HttpGet]
@@ -27,7 +75,7 @@ namespace CommercantsAPI.Controllers
             return Ok(users);
         }
 
-        [HttpGet("{id}", Name = "Get")]
+        [HttpGet("{id}")]
         public IActionResult Get(long id)
         {
             User user = this._repositoryWrapper.User.Find(id);
@@ -38,40 +86,38 @@ namespace CommercantsAPI.Controllers
             return Ok(user);
         }
 
-        [HttpPost]
-        public IActionResult Post([FromBody] User user)
+        [AllowAnonymous]
+        [HttpPost("register")]
+        public IActionResult Register([FromBody] UserDto userDTO)
         {
-            if(user == null)
+            var user = _mapper.Map<User>(userDTO);
+
+            try
             {
-                return BadRequest("L'utilisateur n'a pas été rempli correctement.");
+                _repositoryWrapper.User.Create(user, userDTO.password);
+                return Ok();
             }
-            this._repositoryWrapper.User.Create(user);
-            return CreatedAtRoute("Get", new { Id = user.Id }, user);    
+            catch (AppException exception)
+            {
+                return BadRequest(new { message = exception.Message });
+            }
         }
 
         [HttpPut("{id}")]
-        public IActionResult Put(long id, [FromBody] User user)
+        public IActionResult Update(int id, [FromBody] UserDto userDto)
         {
-            if(user == null)
+            var user = _mapper.Map<User>(userDto);
+            user.Id = id;
+
+            try
             {
-                return BadRequest("L'utilisateur n'a pas été rempli correctement.");
+                _repositoryWrapper.User.Update(user, userDto.password);
+                return Ok();
             }
-
-            User userToUpdate = this._repositoryWrapper.User.Find(id);
-            if(userToUpdate == null)
+            catch (AppException exception)
             {
-                return NotFound("L'utilisateur n'existe pas.");
+                return BadRequest(new { message = exception.Message });
             }
-
-            userToUpdate.Mail = user.Mail;
-            userToUpdate.Password = user.Password;
-            userToUpdate.Name = user.Name;
-            userToUpdate.Surname = user.Surname;
-            userToUpdate.Role = user.Role;
-            userToUpdate.Shop = user.Shop;
-
-            this._repositoryWrapper.User.Update(userToUpdate);
-            return NoContent();
         }
 
         [HttpDelete("{id}")]

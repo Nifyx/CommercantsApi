@@ -1,4 +1,6 @@
-﻿using CommercantsAPI.Services;
+﻿using CommercantsAPI.Models;
+using CommercantsAPI.Models.Shops;
+using CommercantsAPI.Services;
 using Entities.Models;
 using System;
 using System.Collections.Generic;

@@ -1,8 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
+using AutoMapper;
 using CommercantsAPI.Extensions;
+using CommercantsAPI.Models.Users;
+using CommercantsAPI.Repository;
+using CommercantsAPI.Services;
+using CommercantsAPI.Util;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.HttpOverrides;
@@ -12,6 +19,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using Microsoft.IdentityModel.Tokens;
 
 namespace CommercantsAPI
 {
@@ -32,6 +40,45 @@ namespace CommercantsAPI
             services.ConfigureSqlServerContext(Configuration);
             services.ConfigureRepositoryWrapper();
             services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_2);
+            services.AddAutoMapper(typeof(User));
+
+            var AppSettingsSection = Configuration.GetSection("AppSettings");
+            services.Configure<AppSettings>(AppSettingsSection);
+            var appSettings = AppSettingsSection.Get<AppSettings>();
+            var key = Encoding.ASCII.GetBytes(appSettings.Secret);
+            services.AddAuthentication(x =>
+            {
+                x.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+                x.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+            })
+            .AddJwtBearer(x =>
+            {
+                x.Events = new JwtBearerEvents
+                {
+                    OnTokenValidated = context =>
+                    {
+                        IUserRepository userRepo = context.HttpContext.RequestServices.GetRequiredService<IUserRepository>();
+                        int userId = int.Parse(context.Principal.Identity.Name);
+                        User user = userRepo.Find(userId);
+                        if (user == null)
+                        {
+                            context.Fail("Unauthorized");
+                        }
+                        return Task.CompletedTask;
+                    }
+                };
+
+                x.RequireHttpsMetadata = false;
+                x.SaveToken = true;
+                x.TokenValidationParameters = new TokenValidationParameters
+                {
+                    ValidateIssuerSigningKey = true,
+                    IssuerSigningKey = new SymmetricSecurityKey(key),
+                    ValidateIssuer = false,
+                    ValidateAudience = false
+                };
+            });
+            services.AddScoped<IUserRepository, UserRepository>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -44,6 +91,7 @@ namespace CommercantsAPI
             else
             {
                 // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
+                app.UseHttpsRedirection();
                 app.UseHsts();
             }
 
@@ -56,7 +104,7 @@ namespace CommercantsAPI
 
             app.UseStaticFiles();
 
-            app.UseHttpsRedirection();
+            app.UseAuthentication();
             app.UseMvc();
         }
     }
